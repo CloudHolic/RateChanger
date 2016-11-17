@@ -31,10 +31,17 @@ namespace RateChanger
                     GlobalData.Rate = RateUpDown.Value ?? 1;
                 }));
 
+                string[] invalidString = { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
+
                 GlobalData.Directory = Path.GetDirectoryName(path);
                 GlobalData.OsuName = Path.GetFileName(path);
                 GlobalData.Map = new BeatmapInfo(path);
                 GlobalData.Mp3Name = GlobalData.Map.Gen.AudioFilename;
+                GlobalData.newOsuName = GlobalData.Map.Meta.Artist + " - " + GlobalData.Map.Meta.Title + " (" + GlobalData.Map.Meta.Creator + ") [" +
+                    GlobalData.Map.Meta.Version + " x" + GlobalData.Rate + "].osu";
+
+                foreach (var cur in invalidString)
+                    GlobalData.newOsuName = GlobalData.newOsuName.Replace(cur, "");
             }
             catch (Exception ex)
             {
@@ -50,9 +57,7 @@ namespace RateChanger
             mp3Thread.Join();
             patternThread.Join();
 
-            string[] delFiles = {Path.GetFileNameWithoutExtension(GlobalData.Mp3Name) + "_" + GlobalData.Rate + ".mp3",
-                GlobalData.Map.Meta.ArtistUnicode + " - " + GlobalData.Map.Meta.TitleUnicode + "_" + GlobalData.Rate +
-                " (" + GlobalData.Map.Meta.Creator + ") [" + GlobalData.Map.Meta.Version + "].osu"};
+            string[] delFiles = { Path.GetFileNameWithoutExtension(GlobalData.Mp3Name) + "_" + GlobalData.Rate + ".mp3", GlobalData.newOsuName };
 
             if (isErrorOccurred)
             {
@@ -110,7 +115,7 @@ namespace RateChanger
                     WindowStyle = ProcessWindowStyle.Hidden,
                     CreateNoWindow = true,
                     Arguments =
-                        "\"" + curPath + "\" \"" + newPath + "\" \"-rate=" + Math.Round(GlobalData.Rate * 100 - 100) +
+                        "\"" + curPath + "\" \"" + newPath + "\" \"-tempo=" + Math.Round(GlobalData.Rate * 100 - 100) +
                         "\""
                 };
 
@@ -129,12 +134,9 @@ namespace RateChanger
             try
             {
                 var curPath = Path.Combine(GlobalData.Directory, GlobalData.OsuName);
-                var newPath = Path.Combine(GlobalData.Directory,
-                    GlobalData.Map.Meta.ArtistUnicode + " - " + GlobalData.Map.Meta.TitleUnicode + "_" + GlobalData.Rate +
-                    " (" + GlobalData.Map.Meta.Creator + ") [" + GlobalData.Map.Meta.Version + "].osu");
+                var newPath = Path.Combine(GlobalData.Directory, GlobalData.newOsuName);
 
                 var fileString = File.ReadAllLines(curPath);
-
                 for (var i = 0; i < fileString.Length; i++)
                 {
                     //  General
@@ -162,14 +164,9 @@ namespace RateChanger
                     }
 
                     //  Metadata
-                    if (fileString[i].StartsWith("Title:"))
+                    if (fileString[i].StartsWith("Version:"))
                     {
-                        fileString[i] = "Title:" + GlobalData.Map.Meta.Title + "_" + GlobalData.Rate;
-                        continue;
-                    }
-                    if (fileString[i].StartsWith("TitleUnicode:"))
-                    {
-                        fileString[i] = "TitleUnicode:" + GlobalData.Map.Meta.TitleUnicode + "_" + GlobalData.Rate;
+                        fileString[i] = "Version:" + GlobalData.Map.Meta.Version + " x" + GlobalData.Rate;
                         continue;
                     }
                     if (fileString[i].StartsWith("BeatmapID"))
@@ -188,7 +185,7 @@ namespace RateChanger
                     {
                         for (var j = 0; ; j++)
                         {
-                            if (fileString[i + j + 1] == "")
+                            if (fileString[i + j + 1] == "" || fileString[i + j + 1].StartsWith(@"//"))
                                 break;
 
                             var cur = fileString[i + j + 1].Split(',');
@@ -226,7 +223,7 @@ namespace RateChanger
                             cur[2] = Convert.ToString((int)(Convert.ToInt32(cur[2]) / GlobalData.Rate));
 
                             if (cur.Length == 7)
-                                cur[6] = Convert.ToString((int)(Convert.ToInt32(cur[5]) / GlobalData.Rate));
+                                cur[5] = Convert.ToString((int)(Convert.ToInt32(cur[5]) / GlobalData.Rate));
                             else if (cur.Length == 6)
                             {
                                 var addition = cur[5].Split(':');
@@ -240,6 +237,7 @@ namespace RateChanger
                         }
                     }
                 }
+
 
                 File.WriteAllLines(newPath, fileString);
             }
