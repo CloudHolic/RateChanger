@@ -111,6 +111,7 @@
     <Compile Include="Structures\HitObject.cs" />
     <Compile Include="Structures\Metadata.cs" />
     <Compile Include="Structures\TimingPoint.cs" />
+    <Compile Include="Threads.cs" />
     <Compile Include="Util\DirectoryUtil.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
