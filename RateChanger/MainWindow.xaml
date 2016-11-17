@@ -3,10 +3,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:RateChanger"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        x:Name="RateChangerWindow" Title="Osu! Speed Changer by CloudHolic" Height="230" Width="700" AllowDrop="True" Drop="Window_Drop" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Grid>
-        
+        <TextBlock x:Name="PathView" HorizontalAlignment="Left" Margin="40,30,0,0" TextWrapping="Wrap" Text="Osu file path to open:" VerticalAlignment="Top"/>
+        <TextBox x:Name="PathTextBox" HorizontalAlignment="Left" Height="25" Margin="40,60,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="523" MaxLines="1"/>
+        <Button x:Name="OpenButton" Content="Open" Margin="585,60,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="75" Height="25" Click="Open_Click"/>
+        <TextBlock x:Name="SpeedView" HorizontalAlignment="Left" Margin="40,100,0,0" TextWrapping="Wrap" Text="Playback Rate:" VerticalAlignment="Top"/>
+        <xctk:DoubleUpDown x:Name="RateUpDown" Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="130,100,0,0" Width="52" Minimum="0.01" DefaultValue="1" Increment="0.01" ParsingNumberStyle="Float" Text="1.00" ValueChanged="RateUpDown_ValueChanged" InputValidationError="RateUpDown_InputValidationError"/>
+        <CheckBox x:Name="OszCheckBox" Content="Make it as an .osz file" HorizontalAlignment="Left" Margin="220,102,0,0" Width="150" Height="20" VerticalAlignment="Top"/>
+        <Button x:Name="StartButton" Content="Start" HorizontalAlignment="Left" Margin="250,140,0,0" VerticalAlignment="Top" Width="200" Height="35" Click="Start_Click"/>
     </Grid>
 </Window>
