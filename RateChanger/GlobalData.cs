@@ -6,8 +6,9 @@ namespace RateChanger
     {
         public static BeatmapInfo Map;
         public static string Directory;
+        public static string OutputDir;
         public static string OsuName;
-        public static string newOsuName;
+        public static string NewOsuName;
         public static string Mp3Name;
         public static double Rate;
     }

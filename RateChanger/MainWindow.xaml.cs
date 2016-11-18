@@ -30,18 +30,33 @@ namespace RateChanger
             var files = (string[]) e.Data.GetData(System.Windows.DataFormats.FileDrop);
 
             PathTextBox.Text = files?[0];
+
+            if (string.IsNullOrEmpty(DirTextBox.Text))
+                DirTextBox.Text = Path.GetDirectoryName(PathTextBox.Text);
         }
 
         private void Open_Click(object sender, RoutedEventArgs e)
         {
             var ofd = new OpenFileDialog
             {
-                Filter = @".osu files (*.osu)|*.osu|.mp3 files (*.mp3)|*.mp3|All files(*.*)|*.*",
+                Filter = @".osu files (*.osu)|*.osu|All files(*.*)|*.*",
                 RestoreDirectory = true
             };
 
             if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
                 PathTextBox.Text = ofd.FileName;
+                if (string.IsNullOrEmpty(DirTextBox.Text))
+                    DirTextBox.Text = Path.GetDirectoryName(ofd.FileName);
+            }
+        }
+
+        private void DirOpenButton_Click(object sender, RoutedEventArgs e)
+        {
+            var fbd = new FolderBrowserDialog();
+
+            if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                DirTextBox.Text = fbd.SelectedPath;
         }
 
         private void RateUpDown_InputValidationError(object sender,
