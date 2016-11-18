@@ -11,5 +11,6 @@ namespace RateChanger
         public static string NewOsuName;
         public static string Mp3Name;
         public static double Rate;
+        public static bool Nightcore;
     }
 }

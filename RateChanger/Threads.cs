@@ -30,6 +30,7 @@ namespace RateChanger
                 {
                     path = PathTextBox.Text;
                     isChecked = OszCheckBox.IsChecked;
+                    GlobalData.Nightcore = PitchCheckBox.IsChecked ?? false;
                     GlobalData.Rate = RateUpDown.Value ?? 1;
                     GlobalData.OutputDir = string.IsNullOrEmpty(DirTextBox.Text) ? Path.GetDirectoryName(path) : DirTextBox.Text;
                 }));
@@ -39,7 +40,8 @@ namespace RateChanger
                 GlobalData.Map = new BeatmapInfo(path);
                 GlobalData.Mp3Name = GlobalData.Map.Gen.AudioFilename;
                 GlobalData.NewOsuName = GlobalData.Map.Meta.Artist + " - " + GlobalData.Map.Meta.Title + " (" +
-                    GlobalData.Map.Meta.Creator + ") [" + GlobalData.Map.Meta.Version + " x" + GlobalData.Rate + "].osu";
+                    GlobalData.Map.Meta.Creator + ") [" + GlobalData.Map.Meta.Version + " x" + GlobalData.Rate +
+                    (GlobalData.Nightcore ? "_P": "") + "].osu";
 
                 foreach (var cur in invalidString)
                     GlobalData.NewOsuName = GlobalData.NewOsuName.Replace(cur, "");
@@ -58,8 +60,8 @@ namespace RateChanger
             mp3Thread.Join();
             patternThread.Join();
 
-            string[] delFiles = { Path.GetFileNameWithoutExtension(GlobalData.Mp3Name) + "_" + GlobalData.Rate + ".mp3",
-                GlobalData.NewOsuName };
+            string[] delFiles = { Path.GetFileNameWithoutExtension(GlobalData.Mp3Name) + "_" + GlobalData.Rate +
+                    (GlobalData.Nightcore ? "_P": "") + ".mp3", GlobalData.NewOsuName };
 
             if (isErrorOccurred)
             {
@@ -75,9 +77,10 @@ namespace RateChanger
 
                 if (isChecked == true)
                 {
-                    var newDir = GlobalData.Map.Meta.Artist + " - " + GlobalData.Map.Meta.Title + " x" + GlobalData.Rate;
-                    var zipFile = GlobalData.Map.Meta.Artist + " - " + GlobalData.Map.Meta.Title + " x" +
-                                  GlobalData.Rate + ".osz";
+                    var newDir = GlobalData.Map.Meta.Artist + " - " + GlobalData.Map.Meta.Title + " x" + 
+                        GlobalData.Rate + (GlobalData.Nightcore ? "_P" : "");
+                    var zipFile = GlobalData.Map.Meta.Artist + " - " + GlobalData.Map.Meta.Title + " x" + 
+                        GlobalData.Rate + (GlobalData.Nightcore ? "_P" : "") + ".osz";
                     string newPath, zipPath;
 
                     foreach (var cur in invalidString)
@@ -133,14 +136,15 @@ namespace RateChanger
             try
             {
                 var curPath = Path.Combine(GlobalData.Directory, GlobalData.Mp3Name);
-                var newPath = Path.Combine(GlobalData.Directory,
-                    Path.GetFileNameWithoutExtension(GlobalData.Mp3Name) + "_" + GlobalData.Rate + ".mp3");
+                var newPath = Path.Combine(GlobalData.Directory, Path.GetFileNameWithoutExtension(GlobalData.Mp3Name) + 
+                    "_" + GlobalData.Rate + (GlobalData.Nightcore ? "_P" : "") + ".mp3");
 
                 var psInfo = new ProcessStartInfo("process.bat")
                 {
                     WindowStyle = ProcessWindowStyle.Hidden,
                     CreateNoWindow = true,
-                    Arguments = "\"" + curPath + "\" \"" + newPath + "\" \"-tempo=" + Math.Round(GlobalData.Rate * 100 - 100) + "\""
+                    Arguments = "\"" + curPath + "\" \"" + newPath + (GlobalData.Nightcore ? "\" \"-rate=" : "\" \"-tempo=") +
+                        Math.Round(GlobalData.Rate * 100 - 100) + "\""
                 };
 
                 var process = Process.Start(psInfo);
@@ -166,9 +170,8 @@ namespace RateChanger
                     //  General
                     if (fileString[i].StartsWith("AudioFilename:"))
                     {
-                        fileString[i] = "AudioFilename: " +
-                                        Path.GetFileNameWithoutExtension(GlobalData.Map.Gen.AudioFilename) +
-                                        "_" + GlobalData.Rate + ".mp3";
+                        fileString[i] = "AudioFilename: " + Path.GetFileNameWithoutExtension(GlobalData.Map.Gen.AudioFilename) +
+                            "_" + GlobalData.Rate + (GlobalData.Nightcore ? "_P" : "")  + ".mp3";
                         continue;
                     }
                     if (fileString[i].StartsWith("PreviewTime:"))
@@ -190,7 +193,8 @@ namespace RateChanger
                     //  Metadata
                     if (fileString[i].StartsWith("Version:"))
                     {
-                        fileString[i] = "Version:" + GlobalData.Map.Meta.Version + " x" + GlobalData.Rate;
+                        fileString[i] = "Version:" + GlobalData.Map.Meta.Version + " x" + GlobalData.Rate +
+                            (GlobalData.Nightcore ? "_P" : "");
                         continue;
                     }
                     if (fileString[i].StartsWith("BeatmapID"))
@@ -223,18 +227,12 @@ namespace RateChanger
                     {
                         for (var j = 0; j < GlobalData.Map.Timing.Count; j++)
                             fileString[i + j + 1] = (int)(GlobalData.Map.Timing[j].Offset / GlobalData.Rate) + "," +
-                                                    (GlobalData.Map.Timing[j].MsPerBeat > 0
-                                                        ? Convert.ToString(
-                                                            GlobalData.Map.Timing[j].MsPerBeat / GlobalData.Rate,
-                                                            CultureInfo.CurrentCulture)
-                                                        : Convert.ToString(GlobalData.Map.Timing[j].MsPerBeat,
-                                                            CultureInfo.CurrentCulture)) +
-                                                    "," + GlobalData.Map.Timing[j].Meter + "," +
-                                                    GlobalData.Map.Timing[j].SampleType + "," +
-                                                    GlobalData.Map.Timing[j].SampleSet + "," +
-                                                    GlobalData.Map.Timing[j].Volume + "," +
-                                                    (GlobalData.Map.Timing[j].Inherited ? "1" : "0") + "," +
-                                                    (GlobalData.Map.Timing[j].Kiai ? "1" : "0");
+                                (GlobalData.Map.Timing[j].MsPerBeat > 0 ? Convert.ToString(GlobalData.Map.Timing[j].MsPerBeat /
+                                GlobalData.Rate, CultureInfo.CurrentCulture) : Convert.ToString(GlobalData.Map.Timing[j].MsPerBeat,
+                                CultureInfo.CurrentCulture)) + "," + GlobalData.Map.Timing[j].Meter + "," +
+                                GlobalData.Map.Timing[j].SampleType + "," + GlobalData.Map.Timing[j].SampleSet + "," +
+                                GlobalData.Map.Timing[j].Volume + "," + (GlobalData.Map.Timing[j].Inherited ? "1" : "0") + "," +
+                                (GlobalData.Map.Timing[j].Kiai ? "1" : "0");
                         continue;
                     }
 

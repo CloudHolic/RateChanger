@@ -14,8 +14,9 @@
         <TextBox x:Name="DirTextBox" HorizontalAlignment="Left" Height="25" Margin="40,130,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="523" MaxLines="1" Text=""/>
         <Button x:Name="DirOpenButton" Content="Open" Margin="585,130,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="75" Height="25" Click="DirOpenButton_Click"/>
         <TextBlock x:Name="SpeedView" HorizontalAlignment="Left" Margin="40,180,0,0" TextWrapping="Wrap" Text="Playback Rate:" VerticalAlignment="Top"/>
-        <xctk:DoubleUpDown x:Name="RateUpDown" Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="130,180,0,0" Width="52" Minimum="0.01" DefaultValue="1" Increment="0.01" ParsingNumberStyle="Float" Text="1.00" ValueChanged="RateUpDown_ValueChanged" InputValidationError="RateUpDown_InputValidationError"/>
+        <xctk:DoubleUpDown x:Name="RateUpDown" Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="130,180,0,0" Width="50" Minimum="0.01" DefaultValue="1" Increment="0.01" ParsingNumberStyle="Float" Text="1.00" ValueChanged="RateUpDown_ValueChanged" InputValidationError="RateUpDown_InputValidationError"/>
         <CheckBox x:Name="OszCheckBox" Content="Make it as an .osz file" HorizontalAlignment="Left" Margin="220,182,0,0" Width="150" Height="20" VerticalAlignment="Top"/>
+        <CheckBox x:Name="PitchCheckBox" Content="Change pitches" HorizontalAlignment="Left" Margin="410,182,0,0" Width="108" Height="20" VerticalAlignment="Top"/>
         <Button x:Name="StartButton" Content="Start" HorizontalAlignment="Left" Margin="250,220,0,0" VerticalAlignment="Top" Width="200" Height="35" Click="Start_Click"/>
     </Grid>
 </Window>
