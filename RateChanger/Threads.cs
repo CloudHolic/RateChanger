@@ -143,6 +143,7 @@ namespace RateChanger
                 {
                     WindowStyle = ProcessWindowStyle.Hidden,
                     CreateNoWindow = true,
+                    WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Ref"),
                     Arguments = "\"" + curPath + "\" \"" + newPath + (GlobalData.Nightcore ? "\" \"-rate=" : "\" \"-tempo=") +
                         Math.Round(GlobalData.Rate * 100 - 100) + "\""
                 };
