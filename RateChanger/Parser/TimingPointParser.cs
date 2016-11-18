@@ -34,7 +34,7 @@ namespace RateChanger.Parser
                             var temp = new TimingPoint
                             {
                                 //  Offset
-                                Offset = Convert.ToInt32(parsed[0]),
+                                Offset = Convert.ToDouble(parsed[0]),
                                 
                                 //  Milliseconds per Beat
                                 MsPerBeat = Convert.ToDouble(parsed[1]),

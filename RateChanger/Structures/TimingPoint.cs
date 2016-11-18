@@ -14,7 +14,7 @@
             Kiai = false;
         }
 
-        public TimingPoint(int offset, double msperbeat, int meter, int sampletype, int sampleset, int volume,
+        public TimingPoint(double offset, double msperbeat, int meter, int sampletype, int sampleset, int volume,
             bool inherited, bool kiai)
         {
             Offset = offset;
@@ -39,7 +39,7 @@
             Kiai = prevTimingPoint.Kiai;
         }
 
-        public int Offset { get; set; }
+        public double Offset { get; set; }
 
         public double MsPerBeat { get; set; }
 
