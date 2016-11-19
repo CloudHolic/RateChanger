@@ -240,9 +240,12 @@ namespace RateChanger
                     //  HitObjects
                     if (fileString[i] == "[HitObjects]")
                     {
-                        for (var j = 0; j < GlobalData.Map.Hits.Count; j++)
+                        for (var j = i + 1; j < fileString.Length; j++)
                         {
-                            var cur = fileString[i + j + 1].Split(',');
+                            if (string.IsNullOrEmpty(fileString[j]))
+                                break;
+
+                            var cur = fileString[j].Split(',');
                             cur[2] = Convert.ToString((int)(Convert.ToInt32(cur[2]) / GlobalData.Rate));
 
                             if (cur.Length == 7)
@@ -256,11 +259,10 @@ namespace RateChanger
                                     cur[5] = string.Join(":", addition);
                                 }
                             }
-                            fileString[i + j + 1] = string.Join(",", cur);
+                            fileString[j] = string.Join(",", cur);
                         }
                     }
                 }
-
 
                 File.WriteAllLines(newPath, fileString);
             }

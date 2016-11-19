@@ -101,14 +101,12 @@
     <Compile Include="Parser\DifficultyParser.cs" />
     <Compile Include="Parser\EditorParser.cs" />
     <Compile Include="Parser\GeneralParser.cs" />
-    <Compile Include="Parser\HitObjectParser.cs" />
     <Compile Include="Parser\MetadataParser.cs" />
     <Compile Include="Parser\TimingPointParser.cs" />
     <Compile Include="Structures\Colours.cs" />
     <Compile Include="Structures\Difficulty.cs" />
     <Compile Include="Structures\Editor.cs" />
     <Compile Include="Structures\General.cs" />
-    <Compile Include="Structures\HitObject.cs" />
     <Compile Include="Structures\Metadata.cs" />
     <Compile Include="Structures\TimingPoint.cs" />
     <Compile Include="Threads.cs" />

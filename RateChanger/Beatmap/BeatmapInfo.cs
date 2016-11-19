@@ -17,7 +17,6 @@ namespace RateChanger.Beatmap
         public Difficulty Diff { get; set; }
         public List<TimingPoint> Timing { get; set; }
         public List<Colours> Color { get; set; }
-        public List<HitObject> Hits { get; set; }
 
         public BeatmapInfo()
         {
@@ -27,7 +26,6 @@ namespace RateChanger.Beatmap
             Diff = new Difficulty();
             Timing = new List<TimingPoint>();
             Color = new List<Colours>();
-            Hits = new List<HitObject>();
 
             Timing.Add(new TimingPoint());
             Color.Add(new Colours());
@@ -47,7 +45,6 @@ namespace RateChanger.Beatmap
                 Diff = DifficultyParser.Parse(filename);
                 Timing = TimingPointParser.Parse(filename);
                 Color = ColourParser.Parse(filename);
-                Hits = HitObjectParser.Parse(filename);
             }
             else
                 throw new FileNotFoundException();
@@ -67,10 +64,6 @@ namespace RateChanger.Beatmap
             Color = new List<Colours>();
             foreach(var cur in prevBeatmapInfo.Color)
                 Color.Add(new Colours(cur));
-
-            Hits = new List<HitObject>();
-            foreach(var cur in prevBeatmapInfo.Hits)
-                Hits.Add(new HitObject(cur));
         }
     }
 }
