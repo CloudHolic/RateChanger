@@ -253,11 +253,10 @@ namespace RateChanger
                             else if (cur.Length == 6)
                             {
                                 var addition = cur[5].Split(':');
-                                if (addition.Length == 6)
-                                {
-                                    addition[0] = Convert.ToString((int)(Convert.ToInt32(addition[0]) / GlobalData.Rate));
-                                    cur[5] = string.Join(":", addition);
-                                }
+                                addition[0] = Convert.ToString((int)(Convert.ToInt32(addition[0]) / GlobalData.Rate));
+                                cur[5] = string.Join(":", addition);
+                                if (addition.Length == 5)
+                                    cur[5] += ":";
                             }
                             fileString[j] = string.Join(",", cur);
                         }
