@@ -106,7 +106,6 @@ namespace RateChanger
 
                     ZipFile.CreateFromDirectory(newPath, zipPath);
                     Directory.Delete(newPath, true);
-
                 }
                 else if(GlobalData.OutputDir != GlobalData.Directory)
                 {
@@ -145,7 +144,7 @@ namespace RateChanger
                     CreateNoWindow = true,
                     WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Ref"),
                     Arguments = "\"" + curPath + "\" \"" + newPath + (GlobalData.Nightcore ? "\" \"-rate=" : "\" \"-tempo=") +
-                        Math.Round(GlobalData.Rate * 100 - 100) + "\""
+                        Math.Round((GlobalData.Rate * 100) - 100) + "\""
                 };
 
                 var process = Process.Start(psInfo);
@@ -212,7 +211,7 @@ namespace RateChanger
                     //  Events
                     if (fileString[i] == @"//Storyboard Sound Samples")
                     {
-                        for (var j = 0; ; j++)
+                        for (var j = 0 ; ; j++)
                         {
                             if (fileString[i + j + 1] == "" || fileString[i + j + 1].StartsWith(@"//"))
                                 break;
