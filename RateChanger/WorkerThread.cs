@@ -247,7 +247,7 @@ namespace RateChanger
                     //  Events
                     if (fileString[i] == @"//Storyboard Sound Samples")
                     {
-                        for (var j = 0; ; j++)
+                        for (var j = 0;; j++)
                         {
                             if (fileString[i + j + 1] == "" || fileString[i + j + 1].StartsWith(@"//"))
                                 break;
@@ -311,4 +311,3 @@ namespace RateChanger
         }
     }
 }
-
