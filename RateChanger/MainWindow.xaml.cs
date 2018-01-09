@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
 
@@ -12,14 +11,9 @@ namespace RateChanger
     /// </summary>
     public partial class MainWindow
     {
-        private bool isWorking;
-        private volatile bool isErrorOccurred;
-
         public MainWindow()
         {
             InitializeComponent();
-            isWorking = false;
-            isErrorOccurred = false;
         }
 
         private void Window_Drop(object sender, System.Windows.DragEventArgs e)
@@ -73,13 +67,27 @@ namespace RateChanger
 
         private void Start_Click(object sender, RoutedEventArgs e)
         {
-            if (isWorking)
+            if (WorkerThread.Instance.IsWorking)
                 return;
 
-            var workerThread = new Thread(Worker);
+            var threadInfo = new ThreadStruct
+            {
+                IsGui = true,
+                Path = PathTextBox.Text,
+                OszChecked = OszCheckBox.IsChecked ?? false,
+                NightCore = PitchCheckBox.IsChecked ?? false,
+                Rate = RateUpDown.Value ?? 1,
+                OutPutDir = string.IsNullOrEmpty(DirTextBox.Text) ? Path.GetDirectoryName(PathTextBox.Text) : DirTextBox.Text
+            };
 
             RateChangerWindow.Title = "Processing...";
-            workerThread.Start();
+            WorkerThread.Instance.StartWorker(threadInfo);
+
+            RateChangerWindow.Title = "Osu! Speed Changer by CloudHolic";
+            PathTextBox.Text = "";
+            RateUpDown.Value = 1;
+            if (GlobalData.OutputDir == GlobalData.Directory)
+                DirTextBox.Text = "";
         }
     }
 }

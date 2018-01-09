@@ -5,8 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using System.Windows.Forms;
-using System.Windows.Threading;
-
+using NLog;
 using RateChanger.Beatmap;
 using RateChanger.Util;
 using MessageBox = System.Windows.Forms.MessageBox;
@@ -14,48 +13,85 @@ using MessageBox = System.Windows.Forms.MessageBox;
 // ReSharper disable AssignNullToNotNullAttribute
 namespace RateChanger
 {
-    public partial class MainWindow
+    public struct ThreadStruct
     {
-        private void Worker()
+        public bool IsGui { get; set; }
+        public string Path { get; set; }
+        public bool OszChecked { get; set; }
+        public bool NightCore { get; set; }
+        public double Rate { get; set; }
+        public string OutPutDir { get; set; }
+    }
+
+    public class WorkerThread
+    {
+        private static volatile WorkerThread _instance;
+        private static readonly object Lock = new object();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+
+        public bool IsWorking { get; private set; }
+        public bool IsErrorOccurred { get; set; }
+
+        public static WorkerThread Instance
         {
-            string path = "";
-            bool? isChecked = false;
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (Lock)
+                    {
+                        if(_instance == null)
+                            _instance = new WorkerThread();
+                    }
+                }
+                return _instance;
+            }
+        }
+        
+        // Return after worker thread stops.
+        public void StartWorker(ThreadStruct info)
+        {
+            var thread = new Thread(Worker);
+            thread.Start(info);
+            thread.Join();
+        }
+
+        private void Worker(object threadInfo)
+        {
             string[] invalidString = { "\\", "/", ":", "*", "?", "\"", "<", ">", "|" };
 
-            isWorking = true;
+            IsWorking = true;
+            var info = (ThreadStruct) threadInfo;
 
             try
             {
-                Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
-                {
-                    path = PathTextBox.Text;
-                    isChecked = OszCheckBox.IsChecked;
-                    GlobalData.Nightcore = PitchCheckBox.IsChecked ?? false;
-                    GlobalData.Rate = RateUpDown.Value ?? 1;
-                    GlobalData.OutputDir = string.IsNullOrEmpty(DirTextBox.Text) ? Path.GetDirectoryName(path) : DirTextBox.Text;
-                }));
-
-                GlobalData.Directory = Path.GetDirectoryName(path);
-                GlobalData.OsuName = Path.GetFileName(path);
-                GlobalData.Map = new BeatmapInfo(path);
+                GlobalData.Directory = Path.GetDirectoryName(info.Path);
+                GlobalData.OutputDir = info.OutPutDir;
+                GlobalData.OsuName = Path.GetFileName(info.Path);
+                GlobalData.Map = new BeatmapInfo(info.Path);
                 GlobalData.Mp3Name = GlobalData.Map.Gen.AudioFilename;
+                GlobalData.Rate = info.Rate;
+                GlobalData.Nightcore = info.NightCore;
                 GlobalData.NewOsuName = GlobalData.Map.Meta.Artist + " - " + GlobalData.Map.Meta.Title + " (" +
                     GlobalData.Map.Meta.Creator + ") [" + GlobalData.Map.Meta.Version + " x" + GlobalData.Rate +
-                    (GlobalData.Nightcore ? "_P": "") + "].osu";
+                    (GlobalData.Nightcore ? "_P" : "") + "].osu";
 
                 foreach (var cur in invalidString)
                     GlobalData.NewOsuName = GlobalData.NewOsuName.Replace(cur, "");
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, @"Error occurred!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if(info.IsGui)
+                    MessageBox.Show(ex.Message, @"Error occurred!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else
+                    Log.Error(ex, "Error occurred while getting GlobalData.");
             }
 
             var mp3Thread = new Thread(Mp3Change);
             var patternThread = new Thread(PatternChange);
 
-            mp3Thread.Start();
-            patternThread.Start();
+            mp3Thread.Start(info.IsGui);
+            patternThread.Start(info.IsGui);
 
             mp3Thread.Join();
             patternThread.Join();
@@ -63,10 +99,13 @@ namespace RateChanger
             string[] delFiles = { Path.GetFileNameWithoutExtension(GlobalData.Mp3Name) + "_" + GlobalData.Rate +
                     (GlobalData.Nightcore ? "_P": "") + ".mp3", GlobalData.NewOsuName };
 
-            if (isErrorOccurred)
+            if (IsErrorOccurred)
             {
-                MessageBox.Show(@"An error occurred. Please try again.", @"Osu! Speed Changer", 
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if(info.IsGui)
+                    MessageBox.Show(@"An error occurred. Please try again.", @"Osu! Beatmap Rate Converter (made by CloudHolic)",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else
+                    Log.Error("Error occurred while running sub-threads.");
 
                 foreach (var cur in delFiles)
                     File.Delete(Path.Combine(GlobalData.Directory, cur));
@@ -75,11 +114,11 @@ namespace RateChanger
             {
                 string[] exts = { ".osu", ".mp3", ".osb" };
 
-                if (isChecked == true)
+                if (info.OszChecked)
                 {
-                    var newDir = GlobalData.Map.Meta.Artist + " - " + GlobalData.Map.Meta.Title + " x" + 
+                    var newDir = GlobalData.Map.Meta.Artist + " - " + GlobalData.Map.Meta.Title + " x" +
                         GlobalData.Rate + (GlobalData.Nightcore ? "_P" : "");
-                    var zipFile = GlobalData.Map.Meta.Artist + " - " + GlobalData.Map.Meta.Title + " x" + 
+                    var zipFile = GlobalData.Map.Meta.Artist + " - " + GlobalData.Map.Meta.Title + " x" +
                         GlobalData.Rate + (GlobalData.Nightcore ? "_P" : "") + ".osz";
                     string newPath, zipPath;
 
@@ -107,7 +146,7 @@ namespace RateChanger
                     ZipFile.CreateFromDirectory(newPath, zipPath);
                     Directory.Delete(newPath, true);
                 }
-                else if(GlobalData.OutputDir != GlobalData.Directory)
+                else if (GlobalData.OutputDir != GlobalData.Directory)
                 {
                     DirectoryUtil.CopyFolder(GlobalData.Directory, GlobalData.OutputDir, exts);
 
@@ -115,27 +154,21 @@ namespace RateChanger
                         File.Move(Path.Combine(GlobalData.Directory, cur), Path.Combine(GlobalData.OutputDir, cur));
                 }
 
-                MessageBox.Show(@"Finished!", @"Osu! Speed Changer", MessageBoxButtons.OK, MessageBoxIcon.None);
+                if(info.IsGui)
+                    MessageBox.Show(@"Finished!", @"Osu! Beatmap Rate Converter (made by CloudHolic)", MessageBoxButtons.OK, MessageBoxIcon.None);
+                else
+                    Log.Info($"Finished request {GlobalData.OsuName} to {GlobalData.NewOsuName}.");
             }
 
-            Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
-            {
-                RateChangerWindow.Title = "Osu! Speed Changer by CloudHolic";
-                PathTextBox.Text = "";
-                RateUpDown.Value = 1;
-                if (GlobalData.OutputDir == GlobalData.Directory)
-                    DirTextBox.Text = "";
-            }));
-
-            isErrorOccurred = isWorking = false;
+            IsErrorOccurred = IsWorking = false;
         }
 
-        private void Mp3Change()
+        private void Mp3Change(object isGui)
         {
             try
             {
                 var curPath = Path.Combine(GlobalData.Directory, GlobalData.Mp3Name);
-                var newPath = Path.Combine(GlobalData.Directory, Path.GetFileNameWithoutExtension(GlobalData.Mp3Name) + 
+                var newPath = Path.Combine(GlobalData.Directory, Path.GetFileNameWithoutExtension(GlobalData.Mp3Name) +
                     "_" + GlobalData.Rate + (GlobalData.Nightcore ? "_P" : "") + ".mp3");
 
                 var psInfo = new ProcessStartInfo("process.bat")
@@ -152,12 +185,15 @@ namespace RateChanger
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, @"Error occurred!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                isErrorOccurred = true;
+                if((bool)isGui)
+                    MessageBox.Show(ex.Message, @"Error occurred!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else
+                    Log.Error(ex, "Error occurred while changing MP3.");
+                IsErrorOccurred = true;
             }
         }
 
-        private void PatternChange()
+        private void PatternChange(object isGui)
         {
             try
             {
@@ -171,7 +207,7 @@ namespace RateChanger
                     if (fileString[i].StartsWith("AudioFilename:"))
                     {
                         fileString[i] = "AudioFilename: " + Path.GetFileNameWithoutExtension(GlobalData.Map.Gen.AudioFilename) +
-                            "_" + GlobalData.Rate + (GlobalData.Nightcore ? "_P" : "")  + ".mp3";
+                            "_" + GlobalData.Rate + (GlobalData.Nightcore ? "_P" : "") + ".mp3";
                         continue;
                     }
                     if (fileString[i].StartsWith("PreviewTime:"))
@@ -211,7 +247,7 @@ namespace RateChanger
                     //  Events
                     if (fileString[i] == @"//Storyboard Sound Samples")
                     {
-                        for (var j = 0;; j++)
+                        for (var j = 0; ; j++)
                         {
                             if (fileString[i + j + 1] == "" || fileString[i + j + 1].StartsWith(@"//"))
                                 break;
@@ -266,9 +302,13 @@ namespace RateChanger
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, @"Error occurred!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                isErrorOccurred = true;
+                if((bool)isGui)
+                    MessageBox.Show(ex.Message, @"Error occurred!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else
+                    Log.Error(ex, "Error occurred while changing pattern.");
+                IsErrorOccurred = true;
             }
         }
     }
 }
+

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
-        x:Name="RateChangerWindow" Title="Osu! Speed Changer by CloudHolic" Height="310" Width="700" AllowDrop="True" Drop="Window_Drop" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+        x:Name="RateChangerWindow" Title="Osu! Beatmap Rate Converter (made by CloudHolic)" Height="310" Width="700" AllowDrop="True" Drop="Window_Drop" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Grid>
         <TextBlock x:Name="PathView" HorizontalAlignment="Left" Margin="40,30,0,0" TextWrapping="Wrap" Text="Osu file path to open:" VerticalAlignment="Top"/>
         <TextBox x:Name="PathTextBox" HorizontalAlignment="Left" Height="25" Margin="40,60,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="523" MaxLines="1" Text=""/>
